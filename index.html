@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アニメ教育クイズ ✨ Book Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kosugi Maru', sans-serif;
+            background: linear-gradient(135deg, #2C1810 0%, #8B4513 50%, #D2691E 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Floating anime decorations */
+        .floating-decoration {
+            position: fixed;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        .star-1 {
+            top: 10%;
+            left: 5%;
+            width: 30px;
+            animation-delay: 0s;
+        }
+
+        .star-2 {
+            top: 70%;
+            right: 5%;
+            width: 40px;
+            animation-delay: 2s;
+        }
+
+        .star-3 {
+            bottom: 10%;
+            left: 10%;
+            width: 35px;
+            animation-delay: 4s;
+        }
+
+        /* Book container */
+        .book-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #8B4513;
+            border-radius: 10px;
+            box-shadow:
+                0 0 50px rgba(0,0,0,0.5),
+                inset 0 0 10px rgba(0,0,0,0.3);
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .book {
+            background: linear-gradient(90deg, #F5DEB3 0%, #FAEBD7 50%, #F5DEB3 100%);
+            border-radius: 5px;
+            box-shadow:
+                0 0 30px rgba(0,0,0,0.3),
+                inset 2px 0 5px rgba(0,0,0,0.1),
+                inset -2px 0 5px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        /* Book spine effect */
+        .book::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(0,0,0,0.1) 25%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.1) 75%,
+                transparent 100%);
+            transform: translateX(-50%);
+        }
+
+        .header {
+            background: linear-gradient(45deg, #8B4513, #A0522D, #D2691E);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            margin-top: 10px;
+            font-size: 1.1em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mascot {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            bottom: -50px;
+            right: 30px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .content {
+            padding: 0;
+            position: relative;
+            background: transparent;
+        }
+
+        /* Page layout */
+        .page {
+            display: none;
+            padding: 40px;
+            min-height: 500px;
+            position: relative;
+            background: linear-gradient(90deg, #FAF0E6 0%, #FFF8DC 50%, #FAF0E6 100%);
+        }
+
+        .page.active {
+            display: block;
+            animation: pageFlipIn 0.6s ease-out forwards; /* Use forwards to keep the end state */
+            /* transform-origin handled by JS */
+        }
+
+        .page.flipping-out {
+             animation: pageFlipOut 0.6s ease-out forwards; /* Use forwards to keep the end state */
+             /* transform-origin handled by JS */
+        }
+
+        @keyframes pageFlipIn {
+            0% {
+                transform: perspective(1000px) rotateY(-90deg);
+                opacity: 0.5;
+            }
+            100% {
+                transform: perspective(1000px) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pageFlipOut {
+            0% {
+                transform: perspective(1000px) rotateY(0deg);
+                opacity: 1;
+            }
+             100% {
+                transform: perspective(1000px) rotateY(90deg);
+                opacity: 0;
+            }
+        }
+
+
+        /* Page decorations */
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            right: 40px;
+            font-size: 14px;
+            color: #8B4513;
+            font-style: italic;
+        }
+
+        .page-decoration {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            opacity: 0.2;
+        }
+
+        /* Question navigation */
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            border: 2px dashed #D2691E;
+        }
+
+        .question-nav-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFB6C1, #FFE4E1);
+            border: 2px solid #D2691E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #8B4513;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .question-nav-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+        }
+
+        .question-nav-item.active {
+            background: linear-gradient(45deg, #FF69B4, #FFB6C1);
+            color: white;
+            transform: scale(1.15);
+        }
+
+        .question-nav-item.answered {
+            background: linear-gradient(45deg, #98FB98, #90EE90);
+        }
+
+        .question-nav-item.answered::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Input section styles */
+        .input-section h3 {
+            margin-bottom: 20px;
+            color: #8B4513;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            border: 3px solid #D2691E;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #8B4513;
+            box-shadow: 0 0 20px rgba(139, 69, 19, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #8B4513, #D2691E);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #B19CD9, #DDA0DD);
+        }
+
+        .btn.primary {
+            background: linear-gradient(45deg, #FF69B4, #FFB6C1);
+        }
+
+        /* Question card styles */
+        .question-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 2px solid #D2691E;
+            box-shadow: 0 5px 20px rgba(139, 69, 19, 0.2);
+            position: relative;
+            /* Removed transform styles and animation trigger */
+        }
+
+        .question-label {
+            background: linear-gradient(45deg, #8B4513, #D2691E);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(139, 69, 19, 0.3);
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .choices {
+            margin-bottom: 20px;
+        }
+
+        .choice {
+            background: white;
+            border: 3px solid #E6E6FA;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice:hover {
+            border-color: #D2691E;
+            transform: translateX(8px);
+            box-shadow: 0 5px 15px rgba(210, 105, 30, 0.3);
+        }
+
+        .choice.selected {
+            border-color: #FF69B4;
+            background: linear-gradient(145deg, #FFE4E1, #FFF0F5);
+            transform: scale(1.02);
+        }
+
+        .choice.correct {
+            border-color: #98FB98;
+            background: linear-gradient(145deg, #E8F5E8, #F0FFF0);
+        }
+
+        .choice.incorrect {
+            border-color: #FFB6C1;
+            background: linear-gradient(145deg, #FFE4E1, #FFF0F5);
+        }
+
+        .choice-number {
+            background: linear-gradient(45deg, #B19CD9, #DDA0DD);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            border: 2px dashed #D2691E;
+        }
+
+        .answer-section {
+            display: none;
+            background: linear-gradient(145deg, #F0FFF0, #E8F5E8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 3px solid #98FB98;
+            position: relative;
+            /* Kept slideDown animation for answer section reveal */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .answer-section.show {
+            display: block;
+        }
+
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .score-section {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            margin: 20px;
+            border: 3px solid #D2691E;
+            position: relative;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #8B4513, #D2691E);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+        .error {
+            background: linear-gradient(145deg, #FFE4E1, #FFF0F5);
+            color: #D8000C;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 3px solid #FFB6C1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating decorations -->
+    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" class="floating-decoration star-1" alt="star">
+    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg" class="floating-decoration star-2" alt="books">
+    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f31f.svg" class="floating-decoration star-3" alt="star">
+
+    <div class="book-container">
+        <div class="book">
+            <div class="header">
+                <h1>📚 アニメ教育クイズ Book 📚</h1>
+                <p>本をめくるように楽しく学ぼう！✨</p>
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9d1-200d-1f393.svg" class="mascot" alt="student">
+            </div>
+
+            <div class="content">
+                <!-- Input Page -->
+                <div class="page active" id="inputPage">
+                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" class="page-decoration" alt="book">
+                    <div class="input-section">
+                        <h3>📝 問題をJSON形式で入力してください</h3>
+                        <textarea id="jsonInput" placeholder='{
+  "questions": [
+    {
+      "question": "問題1：「事故」の読み方はどれですか。",
+      "choices": [
+        { "option": 1, "text": "じこ" },
+        { "option": 2, "text": "しこ" },
+        { "option": 3, "text": "じこう" },
+        { "option": 4, "text": "しこう" }
+      ],
+      "answer": 1
+    },
+    {
+      "question": "問題2：「電話」の読み方はどれですか。",
+      "choices": [
+        { "option": 1, "text": "でんご" },
+        { "option": 2, "text": "てんわ" },
+        { "option": 3, "text": "でんわ" },
+        { "option": 4, "text": "てんご" }
+      ],
+      "answer": 3
+    },
+    {
+      "question": "問題3：「勉強」の読み方はどれですか。",
+      "choices": [
+        { "option": 1, "text": "べんきょう" },
+        { "option": 2, "text": "べんこう" },
+        { "option": 3, "text": "びょうき" },
+        { "option": 4, "text": "べんきょ" }
+      ],
+      "answer": 1
+    }
+  ]
+}'></textarea>
+                        <div style="margin-top: 15px;">
+                            <button class="btn primary" onclick="startQuiz()">📖 クイズを開始</button>
+                            <button class="btn" onclick="loadSample()">📋 サンプルを読み込み</button>
+                        </div>
+                        <div id="errorMessage"></div>
+                    </div>
+                    <div class="page-number">Page 1</div>
+                </div>
+
+                <!-- Quiz Page -->
+                <div class="page" id="quizPage">
+                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d3.svg" class="page-decoration" alt="notebook">
+
+                    <!-- Question Navigation -->
+                    <div class="question-nav" id="questionNav"></div>
+
+                    <div class="question-card" id="questionCard">
+                        <div class="question-label" id="questionNumber"></div>
+                        <div class="question-text" id="questionText"></div>
+                        <div class="choices" id="choices"></div>
+                        <div class="answer-section" id="answerSection">
+                            <strong>✅ 正解:</strong> <span id="correctAnswer"></span>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <div class="left-controls">
+                            <button class="btn secondary" id="backBtn" onclick="previousQuestion()">⬅️ 前のページ</button>
+                        </div>
+                        <div class="right-controls">
+                            <button class="btn primary" id="showAnswerBtn" onclick="showAnswer()" disabled>💡 答えを表示</button>
+                            <button class="btn primary" id="nextBtn" onclick="nextQuestion()" style="display: none;">➡️ 次のページ</button>
+                            <button class="btn" id="finishBtn" onclick="showResults()" style="display: none;">📊 結果を見る</button>
+                        </div>
+                    </div>
+
+                    <div class="page-number" id="currentPageNumber"></div>
+                </div>
+
+                <!-- Results Page -->
+                <div class="page" id="resultsPage">
+                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3c6.svg" class="page-decoration" alt="trophy">
+                    <div class="score-section">
+                        <h2>🎉 クイズ完了！ 🎉</h2>
+                        <div class="score" id="finalScore"></div>
+                        <p id="scoreMessage" style="font-size: 1.2em; color: #8B4513; margin-bottom: 20px;"></p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn primary" onclick="resetQuiz()">📚 最初のページに戻る</button>
+                            <button class="btn secondary" onclick="reviewQuiz()">📝 問題を見直す</button>
+                        </div>
+                    </div>
+                    <div class="page-number">Final Page</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuestion = 0;
+        let selectedAnswer = null;
+        let score = 0;
+        let showingAnswer = false; // State for the *current* question's display
+        let userAnswers = []; // Stores user's selected option for each question
+        let answersShown = []; // Tracks if 'show answer' was clicked for each question
+
+        function loadSample() {
+            const sampleData = {
+                "questions": [
+                    {
+                        "question": "問題1：「事故」の読み方はどれですか。",
+                        "choices": [
+                            { "option": 1, "text": "じこ" },
+                            { "option": 2, "text": "しこ" },
+                            { "option": 3, "text": "じこう" },
+                            { "option": 4, "text": "しこう" }
+                        ],
+                        "answer": 1
+                    },
+                    {
+                        "question": "問題2：「電話」の読み方はどれですか。",
+                        "choices": [
+                            { "option": 1, "text": "でんご" },
+                            { "option": 2, "text": "てんわ" },
+                            { "option": 3, "text": "でんわ" },
+                            { "option": 4, "text": "てんご" }
+                        ],
+                        "answer": 3
+                    },
+                    {
+                        "question": "問題3：「勉強」の読み方はどれですか。",
+                        "choices": [
+                            { "option": 1, "text": "べんきょう" },
+                            { "option": 2, "text": "べんこう" },
+                            { "option": 3, "text": "びょうき" },
+                            { "option": 4, "text": "べんきょ" }
+                        ],
+                        "answer": 1
+                    },
+                    {
+                        "question": "問題4：「会議」の読み方はどれですか。",
+                        "choices": [
+                            { "option": 1, "text": "かいぎ" },
+                            { "option": 2, "text": "えぎ" },
+                            { "option": 3, "text": "かいご" },
+                            { "option": 4, "text": "えご" }
+                        ],
+                        "answer": 1
+                    },
+                    {
+                        "question": "問題5：「駅」の読み方はどれですか。",
+                        "choices": [
+                            { "option": 1, "text": "えき" },
+                            { "option": 2, "text": "いき" },
+                            { "option": 3, "text": "えく" },
+                            { "option": 4, "text": "いく" }
+                        ],
+                        "answer": 1
+                    }
+                ]
+            };
+
+            document.getElementById('jsonInput').value = JSON.stringify(sampleData, null, 2);
+        }
+
+        function flipPage(fromPageElement, toPageElement) {
+             const bookContainer = document.querySelector('.book');
+             const pages = Array.from(bookContainer.children).filter(el => el.classList.contains('page'));
+             const fromIndex = pages.indexOf(fromPageElement);
+             const toIndex = pages.indexOf(toPageElement);
+
+             // Set transform origins based on direction for better effect
+             if (toIndex > fromIndex) { // Forward flip
+                 fromPageElement.style.transformOrigin = 'right center';
+                 toPageElement.style.transformOrigin = 'left center';
+             } else { // Backward flip
+                 fromPageElement.style.transformOrigin = 'left center';
+                 toPageElement.style.transformOrigin = 'right center';
+             }
+
+
+            fromPageElement.classList.add('flipping-out');
+
+            // Listen for the end of the flip-out animation
+            fromPageElement.addEventListener('animationend', function handleAnimationEnd() {
+                fromPageElement.classList.remove('active', 'flipping-out');
+                toPageElement.classList.add('active');
+
+                // Clean up the event listener
+                fromPageElement.removeEventListener('animationend', handleAnimationEnd);
+
+                // Note: displayQuestion() is typically called after the jump/next logic,
+                // so it will render the content for the new page after the flip.
+            });
+        }
+
+        function startQuiz() {
+            const jsonInput = document.getElementById('jsonInput').value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+
+            errorDiv.innerHTML = '';
+
+            if (!jsonInput) {
+                showError('JSONデータを入力してください。');
+                return;
+            }
+
+            try {
+                const parsedData = JSON.parse(jsonInput);
+
+                if (parsedData.questions && Array.isArray(parsedData.questions)) {
+                    questions = parsedData.questions;
+                } else if (Array.isArray(parsedData)) {
+                    questions = parsedData;
+                } else {
+                    showError('JSONデータは "questions" 配列を含むオブジェクトまたは問題の配列である必要があります。');
+                    return;
+                }
+
+                if (questions.length === 0) {
+                    showError('問題が含まれていません。');
+                    return;
+                }
+
+                for (let i = 0; i < questions.length; i++) {
+                    const q = questions[i];
+                    if (!q.question || !q.choices || !Array.isArray(q.choices) || !q.answer) {
+                        showError(`問題 ${i + 1} の形式が正しくありません。`);
+                        return;
+                    }
+                }
+
+                currentQuestion = 0;
+                score = 0;
+                userAnswers = new Array(questions.length).fill(null);
+                answersShown = new Array(questions.length).fill(false);
+
+                // Create question navigation
+                createQuestionNav();
+
+                // Flip to quiz page (The actual displayQuestion happens after the flip animation end)
+                flipPage(document.getElementById('inputPage'), document.getElementById('quizPage'));
+                 // Call displayQuestion immediately for the new page content to be ready for animation
+                displayQuestion();
+
+            } catch (error) {
+                showError('JSONの形式が正しくありません: ' + error.message);
+            }
+        }
+
+        function createQuestionNav() {
+            const navContainer = document.getElementById('questionNav');
+            navContainer.innerHTML = '<strong style="margin-right: 15px; color: #8B4513;">問題を選択:</strong>';
+
+            questions.forEach((_, index) => {
+                const navItem = document.createElement('div');
+                navItem.className = 'question-nav-item';
+                navItem.textContent = index + 1;
+                navItem.onclick = () => jumpToQuestion(index);
+                navContainer.appendChild(navItem);
+            });
+
+            updateQuestionNav();
+        }
+
+        function updateQuestionNav() {
+            const navItems = document.querySelectorAll('.question-nav-item');
+            navItems.forEach((item, index) => {
+                item.classList.remove('active');
+                if (answersShown[index]) {
+                    item.classList.add('answered');
+                } else {
+                     item.classList.remove('answered');
+                }
+                if (index === currentQuestion) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function jumpToQuestion(index) {
+             if (index !== currentQuestion) {
+                currentQuestion = index;
+                // No page flip animation here when jumping, just change content
+                displayQuestion();
+             }
+        }
+
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            selectedAnswer = userAnswers[currentQuestion];
+            showingAnswer = answersShown[currentQuestion]; // Determine showingAnswer state based on answersShown array
+
+            document.getElementById('questionNumber').textContent = `問題 ${currentQuestion + 1}`;
+            document.getElementById('questionText').textContent = question.question;
+            // Page numbers start after input page (Page 1), so quiz starts at Page 2
+            document.getElementById('currentPageNumber').textContent = `Page ${currentQuestion + 2}`;
+
+            updateQuestionNav();
+
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = ''; // Clear previous choices
+
+            question.choices.forEach(choice => {
+                const choiceDiv = document.createElement('div');
+                choiceDiv.className = 'choice';
+
+                // If answer is already shown for this question, apply correct/incorrect classes immediately and disable clicks
+                if (showingAnswer) {
+                    if (choice.option === question.answer) {
+                        choiceDiv.classList.add('correct');
+                    } else if (choice.option === selectedAnswer && selectedAnswer !== question.answer) {
+                        choiceDiv.classList.add('incorrect');
+                    }
+                    choiceDiv.onclick = null; // Disable clicking if answer is shown
+                } else {
+                    // If answer is not shown, enable clicks
+                    choiceDiv.onclick = () => selectChoice(choice.option, choiceDiv);
+                }
+
+                // Always show selected state if previously selected
+                if (selectedAnswer === choice.option) {
+                    choiceDiv.classList.add('selected');
+                } else {
+                     choiceDiv.classList.remove('selected'); // Ensure 'selected' is removed for other choices
+                }
+                 // Ensure correct/incorrect classes are removed if not showing answer (only applies when first visiting a question)
+                 if (!showingAnswer) {
+                     choiceDiv.classList.remove('correct', 'incorrect');
+                 }
+
+
+                choiceDiv.innerHTML = `
+                    <div class="choice-number">${choice.option}</div>
+                    <div>${choice.text}</div>
+                `;
+
+                choicesDiv.appendChild(choiceDiv);
+            });
+
+            // Show/hide answer section based on answersShown state for the current question
+            const answerSection = document.getElementById('answerSection');
+            if (showingAnswer) {
+                 const correctChoice = question.choices.find(c => c.option === question.answer);
+                 document.getElementById('correctAnswer').textContent = `${question.answer}. ${correctChoice.text}`;
+                 answerSection.classList.add('show');
+            } else {
+                 answerSection.classList.remove('show');
+            }
+
+            updateButtons(); // Update buttons based on current state (selection, showing answer)
+        }
+
+        function selectChoice(option, choiceDiv) {
+            if (showingAnswer) return; // Cannot select if answer is already shown
+
+            // Remove previous selection from ALL choices
+            document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+
+            // Add selection to clicked choice
+            choiceDiv.classList.add('selected');
+            selectedAnswer = option;
+            userAnswers[currentQuestion] = option; // Store the selected answer
+
+            updateButtons(); // Enable "Show Answer" button
+        }
+
+        function updateButtons() {
+            const showAnswerBtn = document.getElementById('showAnswerBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            const backBtn = document.getElementById('backBtn');
+
+            // Back button visibility
+             if (currentQuestion > 0) {
+                backBtn.style.display = 'inline-block';
+             } else {
+                backBtn.style.display = 'none';
+             }
+
+
+            if (answersShown[currentQuestion]) {
+                // Answer has been shown for this question
+                showAnswerBtn.style.display = 'none'; // Hide show answer button
+                if (currentQuestion < questions.length - 1) {
+                    nextBtn.style.display = 'inline-block'; // Show next button
+                    finishBtn.style.display = 'none';
+                } else {
+                    nextBtn.style.display = 'none';
+                    finishBtn.style.display = 'inline-block'; // Show finish button on last question
+                }
+            } else {
+                // Answer has NOT been shown for this question
+                showAnswerBtn.style.display = 'inline-block'; // Show show answer button
+                showAnswerBtn.disabled = selectedAnswer === null; // Button enabled only if an option is selected
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'none';
+            }
+        }
+
+        function showAnswer() {
+            if (selectedAnswer === null || showingAnswer) return; // Do nothing if no answer is selected or already showing
+
+             // --- Reveal Answer Logic (No animation delay) ---
+             showingAnswer = true; // Set state for current display
+             answersShown[currentQuestion] = true; // Mark as shown persistently
+             const question = questions[currentQuestion];
+             const correctAnswer = question.answer;
+
+             // Apply correct/incorrect classes and disable clicking
+             document.querySelectorAll('.choice').forEach((choiceDiv, index) => {
+                 const option = question.choices[index].option;
+                 choiceDiv.onclick = null; // Disable clicking after showing answer
+
+                 if (option === correctAnswer) {
+                     choiceDiv.classList.add('correct');
+                 } else if (option === selectedAnswer && selectedAnswer !== correctAnswer) {
+                     choiceDiv.classList.add('incorrect');
+                 }
+                  // Ensure 'selected' class persists on the user's choice
+                  if (option === selectedAnswer) {
+                      choiceDiv.classList.add('selected');
+                  }
+             });
+
+             // Show answer section
+             const correctChoice = question.choices.find(c => c.option === question.answer);
+             document.getElementById('correctAnswer').textContent = `${correctAnswer}. ${correctChoice.text}`;
+             document.getElementById('answerSection').classList.add('show'); // Uses slideDown CSS animation
+
+             updateButtons(); // Update buttons (will hide 'show answer', show next/finish)
+             updateQuestionNav(); // Update navigation bar (mark question as answered)
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                // Removed page flip here, just updates content
+                currentQuestion++;
+                displayQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                // Removed page flip here, just updates content
+                currentQuestion--;
+                displayQuestion();
+            }
+        }
+
+        function showResults() {
+             // Recalculate score correctly at the end before showing results
+             score = 0;
+             for(let i = 0; i < questions.length; i++) {
+                 // Only count if an answer was selected AND the answer was shown AND it was correct
+                 if (userAnswers[i] !== null && answersShown[i] && userAnswers[i] === questions[i].answer) {
+                     score++;
+                 }
+             }
+
+            flipPage(document.getElementById('quizPage'), document.getElementById('resultsPage'));
+
+            const percentage = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0; // Handle division by zero
+            document.getElementById('finalScore').textContent = `${score} / ${questions.length} (${percentage}%)`;
+
+            let message = '';
+            if (percentage === 100) {
+                message = '🌟 完璧です！素晴らしい成績です！';
+            } else if (percentage >= 80) {
+                message = '👏 とても良くできました！';
+            } else if (percentage >= 60) {
+                message = '👍 良い成績です！';
+            } else {
+                message = '💪 もう少し頑張りましょう！';
+            }
+
+            document.getElementById('scoreMessage').textContent = message;
+        }
+
+        function resetQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            showingAnswer = false;
+            userAnswers = [];
+            answersShown = [];
+
+            document.getElementById('errorMessage').innerHTML = '';
+            // Flip back to the input page
+            flipPage(document.getElementById('resultsPage'), document.getElementById('inputPage'));
+        }
+
+        function reviewQuiz() {
+             // In review mode, simulate that answers were shown for all questions
+            for(let i = 0; i < questions.length; i++) {
+                 answersShown[i] = true;
+            }
+            currentQuestion = 0;
+            // Flip to the quiz page to start review
+            flipPage(document.getElementById('resultsPage'), document.getElementById('quizPage'));
+            // Display the first question in review state
+            displayQuestion();
+        }
+
+        window.onload = function() {
+            loadSample();
+        };
+    </script>
+</body>
+</html>
